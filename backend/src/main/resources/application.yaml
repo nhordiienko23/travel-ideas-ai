@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: travel-ideas-ai
+  datasource:
+    url: jdbc:h2:mem:travelideas
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+  h2:
+    console:
+      enabled: false
