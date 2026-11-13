@@ -13,6 +13,12 @@ Stack: Java 25, Spring Boot 4.1.2, Maven, Spring MVC, JPA, H2, Validation, Lombo
 - Lombok: @RequiredArgsConstructor for DI; @Slf4j only when logging. Never @Data on JPA entities (use @Getter and needed setters).
 - Isolate LangChain4j; use structured output and validate responses. Follow existing config; no unapproved starters.
 
+## Testing
+- Test business logic and all scenarios.
+- always add short concrete display names to tests; use @DisplayName for clarity.
+- Use JUnit 5, Mockito, and AssertJ; avoid other testing frameworks.
+- Test edge cases and all scenarios.
+
 ## Frontend
 - Functional React components and hooks; API calls in src/services/.
 - Handle loading, empty, and error states.
@@ -22,6 +28,5 @@ Stack: Java 25, Spring Boot 4.1.2, Maven, Spring MVC, JPA, H2, Validation, Lombo
 - AI output is untrusted; treat AI prices and duration as estimates.
 
 ## Workflow
-- Test business logic and edge cases.
 - Run ./mvnw -q test after backend edits (use clean only if needed).
 - Keep responses brief (max 3-5 lines): report changed files, test results, and blockers only.
