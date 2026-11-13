@@ -1,12 +1,26 @@
 spring:
   application:
     name: travel-ideas-ai
+
   datasource:
     url: jdbc:h2:mem:travelideas
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
   jpa:
     hibernate:
       ddl-auto: create-drop
     open-in-view: false
+
   h2:
     console:
       enabled: false
+
+app:
+  ai:
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      model: ${OLLAMA_MODEL:llama3.2:3b}
+      connect-timeout: ${OLLAMA_CONNECT_TIMEOUT:5s}
+      read-timeout: ${OLLAMA_READ_TIMEOUT:60s}
