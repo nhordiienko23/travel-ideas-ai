@@ -23,6 +23,7 @@
         <java.version>25</java.version>
         <lombok.version>1.18.48</lombok.version>
         <langchain4j.version>1.23.0</langchain4j.version>
+        <jacoco.version>0.8.16</jacoco.version>
 
         <argLine></argLine>
 
@@ -117,6 +118,28 @@
     <build>
         <plugins>
 
+            <!-- JaCoCo code coverage -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- Spring Boot application packaging -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -153,7 +176,7 @@
                 </executions>
             </plugin>
 
-            <!-- Run tests with Mockito Java Agent -->
+            <!-- Run tests with JaCoCo and Mockito Java Agents -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
