@@ -1,3 +1,4 @@
+
 spring:
   application:
     name: travel-ideas-ai
@@ -22,5 +23,12 @@ app:
     ollama:
       base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
       model: ${OLLAMA_MODEL:llama3.2:3b}
-      connect-timeout: ${OLLAMA_CONNECT_TIMEOUT:5s}
-      read-timeout: ${OLLAMA_READ_TIMEOUT:60s}
+      connect-timeout: 5s
+      read-timeout: 180s
+
+  geocoding:
+    nominatim:
+      base-url: ${NOMINATIM_BASE_URL:https://nominatim.openstreetmap.org}
+      user-agent: "${NOMINATIM_USER_AGENT:TravelIdeasAI/1.0 (https://github.com/nhordiienko23/travel-ideas-ai)}"
+      connect-timeout: 2s
+      read-timeout: 3s

@@ -1,3 +1,4 @@
+
 package com.github.nhordiienko23.travelideasai.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -8,7 +9,6 @@ import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -34,7 +34,7 @@ public record AiTravelRecommendation(
         @Size(max = 1000, message = "Recommendation reason must not exceed 1000 characters.")
         String whyRecommended,
 
-        @NotEmpty(message = "AI recommendation must contain at least one interest tag.")
+        @NotNull(message = "Interest tags list is required.")
         List<@NotNull(message = "Interest tag cannot be null.") Interest> interestTags,
 
         @NotNull(message = "Estimated total cost is required.")
@@ -50,6 +50,7 @@ public record AiTravelRecommendation(
         Integer suggestedDurationDays
 
 ) {
+
     public AiTravelRecommendation {
         destination = destination == null ? null : destination.strip();
         country = country == null ? null : country.strip();

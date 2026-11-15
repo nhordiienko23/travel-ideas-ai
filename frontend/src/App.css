@@ -1,0 +1,607 @@
+
+.app {
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+.app-header {
+  text-align: center;
+  padding: 65px 20px 35px;
+}
+
+.app-header h1 {
+  margin: 0;
+  color: #172b4d;
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 800;
+  letter-spacing: -1.5px;
+}
+
+.app-header p {
+  margin: 14px 0 0;
+  color: #68758b;
+  font-size: 17px;
+}
+
+main {
+  width: min(900px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+/* Notifications */
+
+.app-notification {
+  position: fixed;
+  z-index: 1000;
+  top: 20px;
+  left: 50%;
+  width: min(520px, calc(100% - 32px));
+  transform: translateX(-50%);
+  padding: 15px 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(30, 45, 75, 0.15);
+  font-weight: 600;
+  text-align: center;
+  animation: notification-fade 4.5s ease forwards;
+}
+
+.app-notification-success,
+.saved-operation-success {
+  color: #176b45;
+  background: #eaf8f0;
+  border: 1px solid #bde7cf;
+}
+
+.app-notification-error,
+.saved-operation-error {
+  color: #a52d38;
+  background: #fff0f1;
+  border: 1px solid #ffd7da;
+}
+
+.app-notification-info {
+  color: #3155a5;
+  background: #edf2ff;
+  border: 1px solid #cbd8ff;
+}
+
+.saved-operation-message {
+  margin: 15px 0;
+  padding: 13px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  animation: notification-fade 4.5s ease forwards;
+}
+
+@keyframes notification-fade {
+  0%,
+  82% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Travel form */
+
+.travel-form {
+  width: min(100%, 680px);
+  margin: 0 auto;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #e6eaf2;
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(35, 55, 90, 0.07);
+}
+
+.travel-form h2 {
+  margin: 0 0 12px;
+  color: #172b4d;
+  font-size: 25px;
+}
+
+.travel-form > label {
+  margin-top: 10px;
+  color: #34425a;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.travel-form input:not([type="checkbox"]),
+.travel-form select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  color: #25334b;
+  background: #f9faff;
+  border: 1px solid #dce3ef;
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.travel-form input:focus,
+.travel-form select:focus {
+  border-color: #5278e8;
+  box-shadow: 0 0 0 3px rgba(82, 120, 232, 0.12);
+}
+
+.travel-form fieldset {
+  margin: 15px 0 5px;
+  padding: 18px;
+  border: 1px solid #e1e7f0;
+  border-radius: 12px;
+}
+
+.travel-form legend {
+  padding: 0 7px;
+  color: #34425a;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+/* Interests */
+
+.interests-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.interests-grid label {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px;
+  background: #f7f8fc;
+  border: 1px solid #e5e9f2;
+  border-radius: 8px;
+  color: #46536a;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.interests-grid label:has(input:checked) {
+  background: #edf2ff;
+  border-color: #7693ed;
+  color: #3458ba;
+}
+
+.interests-grid input {
+  accent-color: #5278e8;
+}
+
+/* Form buttons */
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.form-actions button {
+  flex: 1;
+  margin-top: 0;
+}
+
+.travel-form button,
+.recommendation-card button {
+  min-height: 48px;
+  margin-top: 15px;
+  padding: 0 20px;
+  color: #ffffff;
+  background: #4169e1;
+  border: none;
+  border-radius: 10px;
+  font-weight: 650;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.travel-form button:hover,
+.recommendation-card button:hover {
+  background: #3155c5;
+  transform: translateY(-1px);
+}
+
+.travel-form button:disabled,
+.recommendation-card button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.travel-form .clear-button {
+  color: #526078;
+  background: #eef1f6;
+  border: 1px solid #dce2ec;
+}
+
+.travel-form .clear-button:hover {
+  color: #34425a;
+  background: #e1e6ef;
+}
+
+/* Loading */
+
+.loading-message,
+.saved-ideas-message {
+  margin: 25px 0;
+  color: #5270bd;
+  text-align: center;
+}
+
+/* Recommendation results */
+
+.results-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 30px;
+  margin-bottom: 15px;
+}
+
+.clear-results-button,
+.refresh-button {
+  padding: 10px 18px;
+  color: #526078;
+  background: #ffffff;
+  border: 1px solid #dce2ec;
+  border-radius: 9px;
+  font-weight: 600;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.clear-results-button:hover,
+.refresh-button:hover {
+  background: #eef1f6;
+  border-color: #bfc9d9;
+}
+
+.clear-results-button:disabled,
+.refresh-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.recommendation-list {
+  margin-top: 45px;
+}
+
+.recommendation-list > h2 {
+  margin-bottom: 22px;
+  color: #172b4d;
+  font-size: 27px;
+}
+
+.recommendation-card {
+  margin-bottom: 18px;
+  padding: 25px;
+  background: #ffffff;
+  border: 1px solid #e6eaf2;
+  border-radius: 17px;
+  box-shadow: 0 8px 25px rgba(35, 55, 90, 0.05);
+}
+
+.recommendation-card h3 {
+  margin: 0 0 15px;
+  color: #243c70;
+  font-size: 23px;
+}
+
+.recommendation-card h4 {
+  margin: 20px 0 8px;
+  color: #34425a;
+  font-size: 15px;
+}
+
+.recommendation-card p {
+  color: #68758b;
+  line-height: 1.65;
+}
+
+.recommendation-card strong {
+  color: #34425a;
+}
+
+.recommendation-card button {
+  width: 100%;
+}
+
+/* Saved ideas section */
+
+.saved-ideas-section {
+  margin-top: 60px;
+  padding-top: 35px;
+  border-top: 1px solid #e1e7f0;
+}
+
+.saved-ideas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 25px;
+}
+
+.saved-ideas-header h2 {
+  margin: 0;
+  color: #172b4d;
+  font-size: 28px;
+}
+
+.saved-ideas-header p {
+  margin: 8px 0 0;
+  color: #68758b;
+  font-size: 14px;
+}
+
+.empty-saved-ideas {
+  padding: 38px 25px;
+  text-align: center;
+  background: #ffffff;
+  border: 1px dashed #cdd7e6;
+  border-radius: 16px;
+}
+
+.empty-saved-ideas h3 {
+  margin: 0 0 10px;
+  color: #34425a;
+}
+
+.empty-saved-ideas p {
+  margin: 0;
+  color: #7b8799;
+  line-height: 1.6;
+}
+
+.saved-ideas-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+/* Saved idea card */
+
+.saved-idea-card {
+  padding: 25px;
+  background: #ffffff;
+  border: 1px solid #e6eaf2;
+  border-radius: 17px;
+  box-shadow: 0 8px 25px rgba(35, 55, 90, 0.05);
+}
+
+.saved-idea-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.saved-idea-card h3 {
+  margin: 0;
+  color: #243c70;
+  font-size: 22px;
+}
+
+.saved-idea-destination {
+  margin: 7px 0 0;
+  color: #7a879a;
+  font-size: 14px;
+}
+
+.saved-score {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  color: #3458ba;
+  background: #edf2ff;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.saved-idea-description {
+  margin-top: 20px;
+  color: #68758b;
+  line-height: 1.7;
+}
+
+.saved-idea-details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 22px 0;
+  padding: 18px;
+  background: #f7f8fc;
+  border-radius: 12px;
+}
+
+.saved-idea-details div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.saved-idea-details span,
+.saved-idea-note > span {
+  color: #8490a2;
+  font-size: 12px;
+}
+
+.saved-idea-details strong {
+  color: #34425a;
+  font-size: 15px;
+}
+
+.saved-idea-reason h4 {
+  margin: 18px 0 7px;
+  color: #34425a;
+}
+
+.saved-idea-reason p {
+  margin: 0;
+  color: #68758b;
+  line-height: 1.6;
+}
+
+.saved-idea-note {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f8f9fd;
+  border-left: 3px solid #7693ed;
+  border-radius: 7px;
+}
+
+.saved-idea-note p {
+  margin: 7px 0 0;
+  color: #526078;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.saved-idea-date {
+  margin: 18px 0 0;
+  color: #9aa3b2;
+  font-size: 12px;
+}
+
+/* Edit form */
+
+.edit-idea-form {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  width: 100%;
+}
+
+.edit-idea-form label {
+  margin-top: 8px;
+  color: #526078;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.edit-idea-form input,
+.edit-idea-form textarea {
+  width: 100%;
+  padding: 12px 14px;
+  color: #25334b;
+  background: #f9faff;
+  border: 1px solid #dce3ef;
+  border-radius: 9px;
+  font: inherit;
+  outline: none;
+  resize: vertical;
+}
+
+.edit-idea-form input:focus,
+.edit-idea-form textarea:focus {
+  border-color: #5278e8;
+  box-shadow: 0 0 0 3px rgba(82, 120, 232, 0.12);
+}
+
+/* Saved idea actions */
+
+.saved-idea-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.saved-idea-actions button {
+  min-height: 40px;
+  padding: 9px 17px;
+  border: none;
+  border-radius: 9px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.edit-idea-button,
+.save-edit-button {
+  color: #ffffff;
+  background: #4169e1;
+}
+
+.edit-idea-button:hover,
+.save-edit-button:hover {
+  background: #3155c5;
+}
+
+.delete-idea-button {
+  color: #a52d38;
+  background: #fff0f1;
+  border: 1px solid #ffd7da !important;
+}
+
+.delete-idea-button:hover {
+  background: #ffe2e4;
+}
+
+.cancel-edit-button {
+  color: #526078;
+  background: #eef1f6;
+}
+
+.cancel-edit-button:hover {
+  background: #e1e6ef;
+}
+
+.saved-idea-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+  .app-header {
+    padding-top: 42px;
+  }
+
+  .travel-form {
+    padding: 22px 17px;
+  }
+
+  .interests-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .recommendation-card,
+  .saved-idea-card {
+    padding: 20px;
+  }
+
+  .saved-idea-details {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .saved-ideas-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .saved-idea-top {
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-notification,
+  .saved-operation-message {
+    animation-duration: 0.01ms;
+  }
+}
