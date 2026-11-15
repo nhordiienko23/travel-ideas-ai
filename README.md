@@ -55,17 +55,21 @@ Users can manage their own collection of saved destinations:
 
 The following screenshots demonstrate the main application features.
 ## Trip Planner
-![img_3.png](img_3.png)
+![img_3.png](docs/img_3.png)
 ## AI Recommendations
-![img_2.png](img_2.png)
+![img_2.png](docs/img_2.png)
 
 ## Saved Travel Ideas
-![img_4.png](img_4.png)
+![img_4.png](docs/img_4.png)
 
 ## Editing a Saved Idea
-![img_6.png](img_6.png)
-![img_5.png](img_5.png)
+![img_6.png](docs/img_6.png)
+![img_5.png](docs/img_5.png)
+## Demo
 
+Watch a short demonstration of Travel Ideas AI, including AI-powered travel recommendations, Smart Trip Match scoring, and saved travel ideas management.
+
+https://github.com/user-attachments/assets/ea66af0b-a81c-461a-b0c8-c4df258f753a
 ## Technology Stack
 
 ### Backend
@@ -459,7 +463,7 @@ Open `index.html` in a browser to inspect instruction, branch, line, method, and
 The following screenshot shows the generated coverage report:
 
 ## JaCoCo test coverage report
-![img_1.png](img_1.png)
+![img_1.png](docs/img_1.png)
 
 To check the frontend code:
 
