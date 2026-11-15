@@ -61,8 +61,8 @@ class TravelRecommendationAssistantTest {
                   "destination": "Krakow",
                   "country": "Poland",
                   "description": "A historic city with a charming old town.",
-                  "whyRecommended": "Krakow matches history and architecture.",
-                  "interestTags": ["HISTORY", "ARCHITECTURE"],
+                  "whyRecommended": "Krakow has no confirmed interest match.",
+                  "interestTags": [],
                   "estimatedTotalCost": 250.00,
                   "suggestedDurationDays": 2
                 }
@@ -83,7 +83,7 @@ class TravelRecommendationAssistantTest {
     // --------------------------------------------------
 
     @Test
-    @DisplayName("Should generate three valid recommendations")
+    @DisplayName("Should generate exactly three valid recommendations")
     void shouldGenerateThreeValidRecommendations() {
         mockChatResponse(VALID_JSON);
 
@@ -109,9 +109,35 @@ class TravelRecommendationAssistantTest {
                 )
         );
 
-        assertEquals(3, batch.recommendations().get(0).suggestedDurationDays());
+        assertEquals(
+                3,
+                batch.recommendations().get(0).suggestedDurationDays()
+        );
+
         assertEquals("Vienna", batch.recommendations().get(1).destination());
         assertEquals("Krakow", batch.recommendations().get(2).destination());
+
+        assertTrue(
+                batch.recommendations().get(2).interestTags().isEmpty()
+        );
+
+        verify(chatModel, times(1)).chat(any(UserMessage.class));
+    }
+
+    @Test
+    @DisplayName("Should accept an empty interest tags array")
+    void shouldAcceptEmptyInterestTags() {
+        mockChatResponse(VALID_JSON);
+
+        AiRecommendationBatch batch =
+                assistant.generateRecommendations(validRequest());
+
+        assertTrue(
+                batch.recommendations()
+                        .get(2)
+                        .interestTags()
+                        .isEmpty()
+        );
 
         verify(chatModel, times(1)).chat(any(UserMessage.class));
     }
@@ -154,7 +180,13 @@ class TravelRecommendationAssistantTest {
         assertTrue(prompt.contains("ONE person"));
         assertTrue(prompt.contains("ENTIRE trip"));
         assertTrue(prompt.contains("Prices are estimates only"));
-        assertTrue(prompt.contains("Do not calculate or return any Smart Trip Match scores"));
+
+        assertTrue(prompt.contains("An empty interestTags array is VALID."));
+        assertTrue(prompt.contains(
+                "The whyRecommended field must explain only interests"
+        ));
+        assertTrue(prompt.contains("nearest multiple of 5"));
+        assertTrue(prompt.contains("The application calculates Smart Trip Match scores separately."));
 
         assertTrue(prompt.contains("NATURE"));
         assertTrue(prompt.contains("HISTORY"));
@@ -165,10 +197,6 @@ class TravelRecommendationAssistantTest {
         assertTrue(prompt.contains("ARCHITECTURE"));
         assertTrue(prompt.contains("SHOPPING"));
     }
-
-    // --------------------------------------------------
-    // Invalid request
-    // --------------------------------------------------
 
     @Test
     @DisplayName("Should reject null request")
@@ -188,7 +216,8 @@ class TravelRecommendationAssistantTest {
     @Test
     @DisplayName("Should convert communication failures to AiServiceUnavailableException")
     void shouldHandleModelCommunicationFailure() {
-        RuntimeException cause = new RuntimeException("Connection refused");
+        RuntimeException cause =
+                new RuntimeException("Connection refused");
 
         when(chatModel.chat(any(UserMessage.class)))
                 .thenThrow(cause);
@@ -215,14 +244,16 @@ class TravelRecommendationAssistantTest {
     @Test
     @DisplayName("Should reject null ChatResponse")
     void shouldRejectNullChatResponse() {
-        reset(chatModel);
-
-        doReturn(null).when(chatModel).chat(any(UserMessage.class));
+        doReturn(null)
+                .when(chatModel)
+                .chat(any(UserMessage.class));
 
         assertThrows(
                 InvalidAiResponseException.class,
                 () -> assistant.generateRecommendations(validRequest())
         );
+
+        verify(chatModel, times(1)).chat(any(UserMessage.class));
     }
 
     @Test
@@ -232,13 +263,16 @@ class TravelRecommendationAssistantTest {
 
         doReturn(null).when(response).aiMessage();
 
-        reset(chatModel);
-        doReturn(response).when(chatModel).chat(any(UserMessage.class));
+        doReturn(response)
+                .when(chatModel)
+                .chat(any(UserMessage.class));
 
         assertThrows(
                 InvalidAiResponseException.class,
                 () -> assistant.generateRecommendations(validRequest())
         );
+
+        verify(chatModel, times(1)).chat(any(UserMessage.class));
     }
 
     @Test
@@ -251,23 +285,38 @@ class TravelRecommendationAssistantTest {
     }
 
     // --------------------------------------------------
-    // Invalid JSON syntax and formatting
+    // JSON extraction
     // --------------------------------------------------
 
     @Test
-    @DisplayName("Should reject malformed JSON, Markdown fences and trailing text")
-    void shouldRejectInvalidJsonFormatting() {
-        assertInvalidJson("{ invalid json");
+    @DisplayName("Should extract JSON from Markdown fences and surrounding text")
+    void shouldExtractJsonFromSurroundingText() {
+        String responseText = """
+                Here is the generated JSON:
 
-        assertInvalidJson("""
                 ```json
-                {"recommendations": []}
+                %s
                 ```
-                """);
 
-        assertInvalidJson("""
-                {"recommendations": []} Extra explanation
-                """);
+                End of response.
+                """.formatted(VALID_JSON);
+
+        mockChatResponse(responseText);
+
+        AiRecommendationBatch batch =
+                assistant.generateRecommendations(validRequest());
+
+        assertNotNull(batch);
+        assertEquals(3, batch.recommendations().size());
+
+        verify(chatModel, times(1)).chat(any(UserMessage.class));
+    }
+
+    @Test
+    @DisplayName("Should reject malformed JSON")
+    void shouldRejectMalformedJson() {
+        assertInvalidJson("{ invalid json");
+        assertInvalidJson("{\"recommendations\": [");
     }
 
     @Test
@@ -275,6 +324,16 @@ class TravelRecommendationAssistantTest {
     void shouldRejectNullJsonRoot() {
         assertInvalidJson("null");
     }
+
+    @Test
+    @DisplayName("Should reject a response without a JSON object")
+    void shouldRejectResponseWithoutJsonObject() {
+        assertInvalidJson("No recommendations available.");
+    }
+
+    // --------------------------------------------------
+    // Invalid root structure
+    // --------------------------------------------------
 
     @Test
     @DisplayName("Should reject JSON without recommendations")
@@ -303,7 +362,7 @@ class TravelRecommendationAssistantTest {
     }
 
     @Test
-    @DisplayName("Should reject incompatible root structure")
+    @DisplayName("Should reject an incompatible root structure")
     void shouldRejectWrongRootStructure() {
         assertInvalidJson("""
                 [
@@ -313,7 +372,82 @@ class TravelRecommendationAssistantTest {
     }
 
     // --------------------------------------------------
-    // Invalid enum values
+    // Recommendation count
+    // --------------------------------------------------
+
+    @Test
+    @DisplayName("Should reject an empty recommendations array")
+    void shouldRejectEmptyRecommendations() {
+        assertInvalidJson("""
+                {
+                  "recommendations": []
+                }
+                """);
+    }
+
+    @Test
+    @DisplayName("Should reject fewer than three recommendations")
+    void shouldRejectTooFewRecommendations() {
+        String json = """
+                {
+                  "recommendations": [
+                    {
+                      "destination": "Prague",
+                      "country": "Czech Republic",
+                      "description": "A historic city.",
+                      "whyRecommended": "A historic destination.",
+                      "interestTags": [],
+                      "estimatedTotalCost": 450,
+                      "suggestedDurationDays": 3
+                    },
+                    {
+                      "destination": "Vienna",
+                      "country": "Austria",
+                      "description": "A cultural city.",
+                      "whyRecommended": "A cultural destination.",
+                      "interestTags": [],
+                      "estimatedTotalCost": 480,
+                      "suggestedDurationDays": 3
+                    }
+                  ]
+                }
+                """;
+
+        assertInvalidJson(json);
+    }
+
+    @Test
+    @DisplayName("Should reject more than three recommendations")
+    void shouldRejectTooManyRecommendations() {
+        String fourthRecommendation = """
+                ,
+                {
+                  "destination": "Brno",
+                  "country": "Czech Republic",
+                  "description": "A city with historic architecture.",
+                  "whyRecommended": "A historic destination.",
+                  "interestTags": [],
+                  "estimatedTotalCost": 300,
+                  "suggestedDurationDays": 2
+                }
+                """;
+
+        String json = VALID_JSON.replace(
+                """
+                      ]
+                    }
+                    """,
+                fourthRecommendation + """
+                      ]
+                    }
+                    """
+        );
+
+        assertInvalidJson(json);
+    }
+
+    // --------------------------------------------------
+    // Enum values
     // --------------------------------------------------
 
     @Test
@@ -343,7 +477,7 @@ class TravelRecommendationAssistantTest {
     // --------------------------------------------------
 
     @Test
-    @DisplayName("Should reject estimatedTotalCost with incompatible type")
+    @DisplayName("Should reject estimatedTotalCost with an incompatible type")
     void shouldRejectInvalidEstimatedTotalCostType() {
         String invalidJson = VALID_JSON.replace(
                 "\"estimatedTotalCost\": 450.00",
@@ -354,7 +488,7 @@ class TravelRecommendationAssistantTest {
     }
 
     @Test
-    @DisplayName("Should reject destination with incompatible type")
+    @DisplayName("Should reject destination with an incompatible type")
     void shouldRejectInvalidDestinationType() {
         String invalidJson = VALID_JSON.replace(
                 "\"destination\": \"Prague\"",
@@ -365,36 +499,160 @@ class TravelRecommendationAssistantTest {
     }
 
     // --------------------------------------------------
-    // Unexpected fields
+    // Unknown JSON properties
     // --------------------------------------------------
 
     @Test
-    @DisplayName("Should reject unexpected fields")
-    void shouldRejectUnexpectedFields() {
-        String invalidJson = VALID_JSON.replace(
+    @DisplayName("Should ignore unknown properties inside recommendations")
+    void shouldIgnoreUnknownRecommendationFields() {
+        String json = VALID_JSON.replace(
                 "\"whyRecommended\": \"Prague matches history and food.\",",
                 """
                 "whyRecommended": "Prague matches history and food.",
                 "unexpectedField": "unexpected value",
+                "score": 95,
+                "interestsScore": 50,
                 """
+        );
+
+        mockChatResponse(json);
+
+        AiRecommendationBatch batch =
+                assistant.generateRecommendations(validRequest());
+
+        assertEquals(3, batch.recommendations().size());
+        assertEquals("Prague", batch.recommendations().get(0).destination());
+
+        verify(chatModel, times(1)).chat(any(UserMessage.class));
+    }
+
+    @Test
+    @DisplayName("Should ignore unknown properties at the root level")
+    void shouldIgnoreUnknownRootFields() {
+        String json = VALID_JSON.substring(
+                0,
+                VALID_JSON.lastIndexOf('}')
+        ) + """
+                ,
+                  "estimatedTotalCost": 123.45
+                }
+                """;
+
+        mockChatResponse(json);
+
+        AiRecommendationBatch batch =
+                assistant.generateRecommendations(validRequest());
+
+        assertEquals(3, batch.recommendations().size());
+
+        verify(chatModel, times(1)).chat(any(UserMessage.class));
+    }
+
+    // --------------------------------------------------
+    // Suggested duration validation
+    // --------------------------------------------------
+
+    @Test
+    @DisplayName("Should reject a suggested duration of zero")
+    void shouldRejectZeroSuggestedDuration() {
+        String invalidJson = VALID_JSON.replace(
+                "\"suggestedDurationDays\": 3",
+                "\"suggestedDurationDays\": 0"
         );
 
         assertInvalidJson(invalidJson);
     }
 
     @Test
-    @DisplayName("Should reject Smart Trip Match score fields returned by AI")
-    void shouldRejectScoreFieldsReturnedByAi() {
+    @DisplayName("Should reject a negative suggested duration")
+    void shouldRejectNegativeSuggestedDuration() {
         String invalidJson = VALID_JSON.replace(
-                "\"whyRecommended\": \"Prague matches history and food.\",",
-                """
-                "whyRecommended": "Prague matches history and food.",
-                "score": 95,
-                "interestsScore": 50,
-                """
+                "\"suggestedDurationDays\": 3",
+                "\"suggestedDurationDays\": -1"
         );
 
         assertInvalidJson(invalidJson);
+    }
+
+    @Test
+    @DisplayName("Should reject a suggested duration exceeding the user's available days")
+    void shouldRejectDurationExceedingMaximum() {
+        String invalidJson = VALID_JSON.replace(
+                "\"suggestedDurationDays\": 3",
+                "\"suggestedDurationDays\": 6"
+        );
+
+        assertInvalidJson(invalidJson);
+    }
+
+    @Test
+    @DisplayName("Should reject a missing suggested duration")
+    void shouldRejectMissingSuggestedDuration() {
+        String invalidJson = VALID_JSON.replaceAll(
+                "\"estimatedTotalCost\": 450\\.00,\\s*"
+                        + "\"suggestedDurationDays\": 3",
+                "\"estimatedTotalCost\": 450.00"
+        );
+
+        assertNotEquals(VALID_JSON, invalidJson);
+        assertFalse(invalidJson.contains("\"suggestedDurationDays\": 3"));
+
+        assertInvalidJson(invalidJson);
+    }
+
+    @Test
+    @DisplayName("Should retry generation and accept a corrected duration")
+    void shouldRetryAfterInvalidDurationAndAcceptCorrectedResponse() {
+        String invalidJson = VALID_JSON.replace(
+                "\"suggestedDurationDays\": 3",
+                "\"suggestedDurationDays\": 6"
+        );
+
+        when(chatModel.chat(any(UserMessage.class)))
+                .thenReturn(
+                        chatResponse(invalidJson),
+                        chatResponse(VALID_JSON)
+                );
+
+        AiRecommendationBatch batch =
+                assistant.generateRecommendations(validRequest());
+
+        assertNotNull(batch);
+        assertEquals(3, batch.recommendations().size());
+
+        ArgumentCaptor<UserMessage> captor =
+                ArgumentCaptor.forClass(UserMessage.class);
+
+        verify(chatModel, times(2)).chat(captor.capture());
+
+        String retryPrompt = captor.getAllValues()
+                .get(1)
+                .singleText();
+
+        assertTrue(retryPrompt.contains("CRITICAL CORRECTION"));
+        assertTrue(retryPrompt.contains("LESS THAN OR EQUAL TO 5"));
+    }
+
+    @Test
+    @DisplayName("Should fail after retry when the suggested duration remains invalid")
+    void shouldFailWhenDurationRemainsInvalidAfterRetry() {
+        String invalidJson = VALID_JSON.replace(
+                "\"suggestedDurationDays\": 3",
+                "\"suggestedDurationDays\": 6"
+        );
+
+        when(chatModel.chat(any(UserMessage.class)))
+                .thenReturn(
+                        chatResponse(invalidJson),
+                        chatResponse(invalidJson)
+                );
+
+        assertThrows(
+                InvalidAiResponseException.class,
+                () -> assistant.generateRecommendations(validRequest())
+        );
+
+        verify(chatModel, times(2)).chat(any(UserMessage.class));
     }
 
     // --------------------------------------------------
@@ -421,13 +679,6 @@ class TravelRecommendationAssistantTest {
     private void mockChatResponse(String json) {
         reset(chatModel);
 
-        if (json == null) {
-            doReturn(null)
-                    .when(chatModel)
-                    .chat(any(UserMessage.class));
-            return;
-        }
-
         ChatResponse response = chatResponse(json);
 
         doReturn(response)
@@ -442,6 +693,9 @@ class TravelRecommendationAssistantTest {
                 InvalidAiResponseException.class,
                 () -> assistant.generateRecommendations(validRequest())
         );
+
+        // Invalid AI output is retried once.
+        verify(chatModel, times(2)).chat(any(UserMessage.class));
     }
 
     private void assertInvalidResponseText(String text) {
@@ -452,6 +706,7 @@ class TravelRecommendationAssistantTest {
         doReturn(aiMessage).when(response).aiMessage();
 
         reset(chatModel);
+
         doReturn(response)
                 .when(chatModel)
                 .chat(any(UserMessage.class));
@@ -460,5 +715,7 @@ class TravelRecommendationAssistantTest {
                 InvalidAiResponseException.class,
                 () -> assistant.generateRecommendations(validRequest())
         );
+
+        verify(chatModel, times(2)).chat(any(UserMessage.class));
     }
 }

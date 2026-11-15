@@ -21,7 +21,8 @@ class MatchScoreServiceTest {
 
     private final MatchScoreService service = new MatchScoreService();
 
-    private final List<Interest> requested = List.of(NATURE, HISTORY, FOOD);
+    private final List<Interest> requested =
+            List.of(NATURE, HISTORY, FOOD);
 
     // --------------------------------------------------
     // Reference scoring scenarios
@@ -31,36 +32,68 @@ class MatchScoreServiceTest {
     @DisplayName("Should calculate all eight reference scoring scenarios correctly")
     void calculatesAllReferenceCases() {
         // 3/3 interests + budget OK + duration OK = 100
-        assertScore(List.of(NATURE, HISTORY, FOOD),
-                "90", 4, 50, 30, 20, 100);
+        assertScore(
+                List.of(NATURE, HISTORY, FOOD),
+                "90",
+                4,
+                50, 30, 20, 100
+        );
 
         // 2/3 interests + budget OK + duration OK = 83
-        assertScore(List.of(NATURE, HISTORY),
-                "90", 4, 33, 30, 20, 83);
+        assertScore(
+                List.of(NATURE, HISTORY),
+                "90",
+                4,
+                33, 30, 20, 83
+        );
 
         // 1/3 interests + budget OK + duration OK = 67
-        assertScore(List.of(NATURE),
-                "90", 4, 17, 30, 20, 67);
+        assertScore(
+                List.of(NATURE),
+                "90",
+                4,
+                17, 30, 20, 67
+        );
 
         // 0/3 interests + budget OK + duration OK = 50
-        assertScore(List.of(BEACH),
-                "90", 4, 0, 30, 20, 50);
+        assertScore(
+                List.of(BEACH),
+                "90",
+                4,
+                0, 30, 20, 50
+        );
 
         // 3/3 interests + budget OVER + duration OK = 70
-        assertScore(List.of(NATURE, HISTORY, FOOD),
-                "110", 4, 50, 0, 20, 70);
+        assertScore(
+                List.of(NATURE, HISTORY, FOOD),
+                "110",
+                4,
+                50, 0, 20, 70
+        );
 
         // 3/3 interests + budget OK + duration OVER = 80
-        assertScore(List.of(NATURE, HISTORY, FOOD),
-                "90", 6, 50, 30, 0, 80);
+        assertScore(
+                List.of(NATURE, HISTORY, FOOD),
+                "90",
+                6,
+                50, 30, 0, 80
+        );
 
         // 2/3 interests + budget OVER + duration OVER = 33
-        assertScore(List.of(NATURE, HISTORY),
-                "110", 6, 33, 0, 0, 33);
+        assertScore(
+                List.of(NATURE, HISTORY),
+                "110",
+                6,
+                33, 0, 0, 33
+        );
 
         // 0/3 interests + budget OVER + duration OVER = 0
-        assertScore(List.of(BEACH),
-                "110", 6, 0, 0, 0, 0);
+        assertScore(
+                List.of(BEACH),
+                "110",
+                6,
+                0, 0, 0, 0
+        );
     }
 
     // --------------------------------------------------
@@ -158,6 +191,26 @@ class MatchScoreServiceTest {
         );
     }
 
+    @Test
+    @DisplayName("Should allow empty recommendation interest tags and award zero interest points")
+    void emptyRecommendationInterestsAreAllowed() {
+        RecommendationRequest request =
+                request(requested, "100", 5);
+
+        AiTravelRecommendation recommendation =
+                recommendation(List.of(), "90", 4);
+
+        assertTrue(
+                service.findMatchingInterests(request, recommendation)
+                        .isEmpty()
+        );
+
+        assertEquals(
+                new MatchScoreResponse(0, 30, 20, 50),
+                service.calculateScore(request, recommendation)
+        );
+    }
+
     // --------------------------------------------------
     // Budget and duration boundaries
     // --------------------------------------------------
@@ -202,55 +255,87 @@ class MatchScoreServiceTest {
     // --------------------------------------------------
 
     @Test
-    @DisplayName("Should reject null or empty interest inputs")
-    void rejectsNullOrEmptyInterestInputs() {
+    @DisplayName("Should reject null request and recommendation objects")
+    void rejectsNullObjects() {
         RecommendationRequest validRequest =
                 request(requested, "100", 5);
 
         AiTravelRecommendation validRecommendation =
                 recommendation(List.of(NATURE), "90", 4);
 
-        assertThrows(IllegalArgumentException.class,
-                () -> service.calculateScore(null, validRecommendation));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.calculateScore(null, validRecommendation)
+        );
 
-        assertThrows(IllegalArgumentException.class,
-                () -> service.calculateScore(validRequest, null));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.calculateScore(validRequest, null)
+        );
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.findMatchingInterests(null, validRecommendation)
+        );
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.findMatchingInterests(validRequest, null)
+        );
+    }
+
+    @Test
+    @DisplayName("Should reject null or empty user interests")
+    void rejectsInvalidRequestInterests() {
+        AiTravelRecommendation validRecommendation =
+                recommendation(List.of(NATURE), "90", 4);
+
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.findMatchingInterests(
                         request(null, "100", 5),
                         validRecommendation
-                ));
+                )
+        );
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.findMatchingInterests(
                         request(List.of(), "100", 5),
                         validRecommendation
-                ));
+                )
+        );
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.findMatchingInterests(
                         request(Arrays.asList(NATURE, null), "100", 5),
                         validRecommendation
-                ));
+                )
+        );
+    }
 
-        assertThrows(IllegalArgumentException.class,
+    @Test
+    @DisplayName("Should reject null recommendation interest tags and null tag elements")
+    void rejectsInvalidRecommendationInterests() {
+        RecommendationRequest validRequest =
+                request(requested, "100", 5);
+
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.findMatchingInterests(
                         validRequest,
                         recommendation(null, "90", 4)
-                ));
+                )
+        );
 
-        assertThrows(IllegalArgumentException.class,
-                () -> service.findMatchingInterests(
-                        validRequest,
-                        recommendation(List.of(), "90", 4)
-                ));
-
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.findMatchingInterests(
                         validRequest,
                         recommendation(Arrays.asList(NATURE, null), "90", 4)
-                ));
+                )
+        );
     }
 
     // --------------------------------------------------
@@ -262,46 +347,58 @@ class MatchScoreServiceTest {
     void rejectsInvalidBudgetInputs() {
 
         // Null user budget
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.calculateScore(
                         request(requested, null, 5),
                         recommendation(List.of(NATURE), "90", 4)
-                ));
+                )
+        );
 
         // Zero user budget
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.calculateScore(
                         request(requested, "0", 5),
                         recommendation(List.of(NATURE), "90", 4)
-                ));
+                )
+        );
 
         // Negative user budget
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.calculateScore(
                         request(requested, "-100", 5),
                         recommendation(List.of(NATURE), "90", 4)
-                ));
+                )
+        );
 
         // Null AI estimated cost
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.calculateScore(
                         request(requested, "100", 5),
                         recommendation(List.of(NATURE), null, 4)
-                ));
+                )
+        );
 
         // Zero AI estimated cost
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.calculateScore(
                         request(requested, "100", 5),
                         recommendation(List.of(NATURE), "0", 4)
-                ));
+                )
+        );
 
         // Negative AI estimated cost
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.calculateScore(
                         request(requested, "100", 5),
                         recommendation(List.of(NATURE), "-1", 4)
-                ));
+                )
+        );
     }
 
     @Test
@@ -309,60 +406,76 @@ class MatchScoreServiceTest {
     void rejectsInvalidDurationInputs() {
 
         // Null user duration
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.calculateScore(
                         request(requested, "100", null),
                         recommendation(List.of(NATURE), "90", 4)
-                ));
+                )
+        );
 
         // Zero user duration
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.calculateScore(
                         request(requested, "100", 0),
                         recommendation(List.of(NATURE), "90", 4)
-                ));
+                )
+        );
 
         // Negative user duration
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.calculateScore(
                         request(requested, "100", -1),
                         recommendation(List.of(NATURE), "90", 4)
-                ));
+                )
+        );
 
         // User duration exceeds maximum
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.calculateScore(
                         request(requested, "100", 31),
                         recommendation(List.of(NATURE), "90", 4)
-                ));
+                )
+        );
 
         // Null AI duration
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.calculateScore(
                         request(requested, "100", 5),
                         recommendation(List.of(NATURE), "90", null)
-                ));
+                )
+        );
 
         // Zero AI duration
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.calculateScore(
                         request(requested, "100", 5),
                         recommendation(List.of(NATURE), "90", 0)
-                ));
+                )
+        );
 
         // Negative AI duration
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.calculateScore(
                         request(requested, "100", 5),
                         recommendation(List.of(NATURE), "90", -1)
-                ));
+                )
+        );
 
         // AI duration exceeds maximum
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> service.calculateScore(
                         request(requested, "100", 5),
                         recommendation(List.of(NATURE), "90", 31)
-                ));
+                )
+        );
     }
 
     // --------------------------------------------------

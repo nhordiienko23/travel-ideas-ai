@@ -1,3 +1,4 @@
+
 package com.github.nhordiienko23.travelideasai.config;
 
 import jakarta.validation.constraints.NotBlank;
@@ -24,6 +25,7 @@ public record OllamaProperties(
         Duration readTimeout
 
 ) {
+
     public OllamaProperties {
         if (connectTimeout != null
                 && (connectTimeout.isZero() || connectTimeout.isNegative())) {
